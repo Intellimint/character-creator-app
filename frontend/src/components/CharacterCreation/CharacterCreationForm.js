@@ -3,7 +3,8 @@ import './CharacterCreationForm.css';
 
 const CharacterCreationForm = ({ onCharacterCreated }) => {
   const [name, setName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
   const [genderIdentity, setGenderIdentity] = useState('');
   const [customGender, setCustomGender] = useState('');
   const [sexualOrientation, setSexualOrientation] = useState('');
@@ -11,36 +12,62 @@ const CharacterCreationForm = ({ onCharacterCreated }) => {
   const [description, setDescription] = useState('');
   const [persona, setPersona] = useState('');
   const [firstMessage, setFirstMessage] = useState('');
-  const [isNSFW, setIsNSFW] = useState(false); // NSFW field
-  const [tags, setTags] = useState('');  // Tags field
+  const [isNSFW, setIsNSFW] = useState(false);
+  const [tags, setTags] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newCharacter = {
-      name,
-      avatar_url: avatarUrl,
-      gender_identity: customGender || genderIdentity,
-      sexual_orientation: customSexualOrientation || sexualOrientation,
-      description,
-      persona,
-      first_message: firstMessage,
-      is_nsfw: isNSFW,  // Capture NSFW status
-      tags: tags.split(',').map(tag => tag.trim()),  // Convert tags to array
-      creator_id: 1,  // This would typically be dynamic (e.g., based on logged-in user)
-    };
-    onCharacterCreated(newCharacter);
-    // Reset form
-    setName('');
-    setAvatarUrl('');
-    setGenderIdentity('');
-    setCustomGender('');
-    setSexualOrientation('');
-    setCustomSexualOrientation('');
-    setDescription('');
-    setPersona('');
-    setFirstMessage('');
-    setIsNSFW(false);
-    setTags('');
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('avatar', avatarFile);
+    formData.append('gender_identity', customGender || genderIdentity);
+    formData.append('sexual_orientation', customSexualOrientation || sexualOrientation);
+    formData.append('description', description);
+    formData.append('persona', persona);
+    formData.append('first_message', firstMessage);
+    formData.append('is_nsfw', isNSFW);
+    formData.append('tags', tags);
+
+    try {
+      const response = await fetch('http://localhost:8001/create-character', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const newCharacter = await response.json();
+        onCharacterCreated(newCharacter);
+        // Reset form
+        setName('');
+        setAvatarFile(null);
+        setAvatarPreview('');
+        setGenderIdentity('');
+        setCustomGender('');
+        setSexualOrientation('');
+        setCustomSexualOrientation('');
+        setDescription('');
+        setPersona('');
+        setFirstMessage('');
+        setIsNSFW(false);
+        setTags('');
+      } else {
+        console.error('Failed to create character');
+      }
+    } catch (error) {
+      console.error('Error creating character:', error);
+    }
   };
 
   return (
@@ -64,9 +91,16 @@ const CharacterCreationForm = ({ onCharacterCreated }) => {
           <input
             type="file"
             id="avatarUrl"
-            // For now, handle this as a placeholder; later we will manage the actual file upload
-            onChange={(e) => setAvatarUrl(e.target.files[0]?.name)}
+            accept="image/*"
+            onChange={handleAvatarChange}
           />
+          {avatarPreview && (
+            <img
+              src={avatarPreview}
+              alt="Avatar preview"
+              className="avatar-preview"
+            />
+          )}
         </div>
 
         <div className="form-group">
@@ -153,7 +187,6 @@ const CharacterCreationForm = ({ onCharacterCreated }) => {
           />
         </div>
 
-        {/* NSFW Checkbox */}
         <div className="form-group">
           <label>
             <input
@@ -165,7 +198,6 @@ const CharacterCreationForm = ({ onCharacterCreated }) => {
           </label>
         </div>
 
-        {/* Tags Input */}
         <div className="form-group">
           <label htmlFor="tags">Tags (comma-separated):</label>
           <input
