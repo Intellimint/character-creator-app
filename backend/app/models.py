@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text, Boolean
 from app.database import Base
 
 class Character(Base):
@@ -12,4 +12,6 @@ class Character(Base):
     description = Column(Text)
     persona = Column(Text)
     first_message = Column(Text)
-    creator_id = Column(Integer)  # We'll link this to users later
+    creator_id = Column(Integer)
+    nsfw = Column(Boolean, default=False)  # NSFW field
+    tags = Column(String)  # This will store tags as a comma-separated string

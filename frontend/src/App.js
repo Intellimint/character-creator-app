@@ -3,14 +3,9 @@ import CharacterGrid from './components/CharacterGrid/CharacterGrid';
 import CharacterCreationForm from './components/CharacterCreation/CharacterCreationForm';
 import './App.css';
 
-const characters = [
-  { id: 1, name: 'Thorin', avatar: 'https://example.com/thorin.png', description: 'A mighty warrior' },
-  { id: 2, name: 'Elena', avatar: 'https://example.com/elena.png', description: 'A cunning strategist' },
-  { id: 3, name: 'Leif', avatar: 'https://example.com/leif.png', description: 'A swift and agile rogue' },
-];
-
-function App() {
+const App = () => {
   const [route, setRoute] = useState(window.location.pathname);
+  const [selectedCharacter, setSelectedCharacter] = useState(null);
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -25,15 +20,24 @@ function App() {
     setRoute(path);
   };
 
+  const handleCharacterClick = (character) => {
+    setSelectedCharacter(character);
+    navigate(`/character/${character.id}`);
+  };
+
   const renderCharacterPage = () => {
-    const characterName = route.split('/character/')[1];
-    const character = characters.find((c) => c.name.toLowerCase() === characterName);
-    if (character) {
+    if (selectedCharacter) {
       return (
-        <div>
-          <h2>{character.name}</h2>
-          <img src={character.avatar} alt={character.name} />
-          <p>{character.description}</p>
+        <div className="character-details">
+          <h2>{selectedCharacter.name}</h2>
+          <img src={selectedCharacter.avatar_url} alt={selectedCharacter.name} />
+          <p>{selectedCharacter.description}</p>
+          <p><strong>Gender Identity:</strong> {selectedCharacter.gender_identity}</p>
+          <p><strong>Sexual Orientation:</strong> {selectedCharacter.sexual_orientation}</p>
+          <p><strong>Persona:</strong> {selectedCharacter.persona}</p>
+          <p><strong>First Message:</strong> {selectedCharacter.first_message}</p>
+          <p><strong>NSFW:</strong> {selectedCharacter.nsfw ? 'Yes' : 'No'}</p>
+          <p><strong>Tags:</strong> {selectedCharacter.tags.join(', ')}</p>
         </div>
       );
     }
@@ -49,12 +53,14 @@ function App() {
         </ul>
       </nav>
       <main className="main-content">
-        {route === '/' && <CharacterGrid navigate={navigate} />}
+        {route === '/' && (
+          <CharacterGrid onCharacterClick={handleCharacterClick} />
+        )}
         {route === '/create-character' && <CharacterCreationForm />}
         {route.includes('/character/') && renderCharacterPage()}
       </main>
     </div>
   );
-}
+};
 
 export default App;

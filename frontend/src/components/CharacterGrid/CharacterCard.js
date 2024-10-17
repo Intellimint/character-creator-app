@@ -1,16 +1,13 @@
 import React from 'react';
 
-const CharacterCard = ({ name, avatar, description, navigate }) => {
-  const handleClick = () => {
-    // Navigate to the character's custom URL
-    navigate(`/character/${name.toLowerCase()}`);
-  };
-
+const CharacterCard = ({ name, avatar, description, isNSFW, tags }) => {
   return (
-    <div className="character-card" onClick={handleClick}>
+    <div className="character-card">
       <img src={avatar} alt={name} />
       <h3>{name}</h3>
+      {isNSFW && <p style={{ color: 'red' }}>NSFW</p>}
       <p>{description}</p>
+      <p>Tags: {tags.join(', ')}</p>
     </div>
   );
 };
